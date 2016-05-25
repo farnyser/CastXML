@@ -1656,10 +1656,13 @@ void ASTVisitor::OutputRecordDecl(clang::RecordDecl const* d,
   this->PrintContextAttribute(d, access);
   this->PrintLocationAttribute(d);
   if(d->getDefinition()) {
-    if(dx && dx->isAbstract()) {
-      this->OS << " abstract=\"1\"";
-    }
-    if (dn->Complete && !d->isInvalidDecl()) {
+	  if (dx && dx->isAbstract()) {
+		  this->OS << " abstract=\"1\"";
+	  }
+	  if (d->hasAttr<clang::FinalAttr>()) {
+		  this->OS << " final=\"1\"";
+	  }
+	  if (dn->Complete && !d->isInvalidDecl()) {
       this->PrintMembersAttribute(d);
       doBases = dx && dx->getNumBases();
       if(doBases) {
