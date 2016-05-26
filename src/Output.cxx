@@ -1629,7 +1629,7 @@ void ASTVisitor::OutputRecordDecl(clang::RecordDecl const* d,
   case clang::TTK_Class: tag = "Class"; break;
   case clang::TTK_Union: tag = "Union"; break;
   case clang::TTK_Struct: tag = "Struct"; break;
-  case clang::TTK_Interface: return;
+  case clang::TTK_Interface: tag = "Interface"; break;
   case clang::TTK_Enum: return;
   }
   clang::CXXRecordDecl const* dx = clang::dyn_cast<clang::CXXRecordDecl>(d);
