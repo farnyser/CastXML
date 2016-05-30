@@ -390,7 +390,8 @@ class ASTVisitor: public ASTVisitorBase
     FH_Const      = (1<<3),
     FH_Virtual    = (1<<4),
     FH_Pure       = (1<<5),
-    FH__Last
+	FH_Final      = (1<<6),
+	FH__Last
   };
 
   /** Output a function element using the name and flags given by
@@ -1451,6 +1452,9 @@ void ASTVisitor::OutputFunctionHelper(clang::FunctionDecl const* d,
   if(flags & FH_Pure) {
     this->OS << " pure_virtual=\"1\"";
   }
+  if(flags & FH_Final) {
+    this->OS << " final=\"1\"";
+  }
   if(d->isInlined()) {
     this->OS << " inline=\"1\"";
   }
@@ -1625,7 +1629,7 @@ void ASTVisitor::OutputRecordDecl(clang::RecordDecl const* d,
   case clang::TTK_Class: tag = "Class"; break;
   case clang::TTK_Union: tag = "Union"; break;
   case clang::TTK_Struct: tag = "Struct"; break;
-  case clang::TTK_Interface: return;
+  case clang::TTK_Interface: tag = "Interface"; break;
   case clang::TTK_Enum: return;
   }
   clang::CXXRecordDecl const* dx = clang::dyn_cast<clang::CXXRecordDecl>(d);
@@ -1652,10 +1656,13 @@ void ASTVisitor::OutputRecordDecl(clang::RecordDecl const* d,
   this->PrintContextAttribute(d, access);
   this->PrintLocationAttribute(d);
   if(d->getDefinition()) {
-    if(dx && dx->isAbstract()) {
-      this->OS << " abstract=\"1\"";
-    }
-    if (dn->Complete && !d->isInvalidDecl()) {
+	  if (dx && dx->isAbstract()) {
+		  this->OS << " abstract=\"1\"";
+	  }
+	  if (d->hasAttr<clang::FinalAttr>()) {
+		  this->OS << " final=\"1\"";
+	  }
+	  if (dn->Complete && !d->isInvalidDecl()) {
       this->PrintMembersAttribute(d);
       doBases = dx && dx->getNumBases();
       if(doBases) {
@@ -1871,7 +1878,10 @@ void ASTVisitor::OutputCXXMethodDecl(clang::CXXMethodDecl const* d,
   if(d->isPure()) {
     flags |= FH_Pure;
   }
-  if(d->isOverloadedOperator()) {
+  if(d->hasAttr<clang::FinalAttr>()) {
+	  flags |= FH_Final;
+  }
+  if (d->isOverloadedOperator()) {
     this->OutputFunctionHelper(d, dn, "OperatorMethod",
       clang::getOperatorSpelling(d->getOverloadedOperator()), flags);
   } else {
